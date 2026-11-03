@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-
 from hello_agents import ToolAwareSimpleAgent
 
 from models import SummaryState
@@ -11,6 +9,10 @@ from config import Configuration
 from prompts import get_current_date
 from utils import strip_thinking_tokens
 from services.text_processing import strip_tool_calls
+
+# 仅 Report Writer 生效的输出上限：DeepSeek 端点已验证可接受并实际产出 12000+ token；
+# 报告输入（任务总结）约 2.8 万 token，加上 1.6 万输出仍在上下文窗口内。
+REPORT_MAX_TOKENS = 16384
 
 
 class ReportingService:
@@ -45,28 +47,19 @@ class ReportingService:
 
         notes_section = "\n".join(note_references) if note_references else "- 暂无可用任务笔记"
 
-        read_template = json.dumps({"action": "read", "note_id": "<note_id>"}, ensure_ascii=False)
-        create_conclusion_template = json.dumps(
-            {
-                "action": "create",
-                "title": f"研究报告：{state.research_topic}",
-                "note_type": "conclusion",
-                "tags": ["deep_research", "report"],
-                "content": "请在此沉淀最终报告要点",
-            },
-            ensure_ascii=False,
-        )
-
         prompt = (
             f"当前日期：{get_current_date()}\n"
             f"研究主题：{state.research_topic}\n"
             f"任务概览：\n{''.join(tasks_block)}\n"
-            f"可用任务笔记：\n{notes_section}\n"
-            f"请针对每条任务笔记使用格式：[TOOL_CALL:note:{read_template}] 读取内容，整合所有信息后撰写报告。\n"
-            f"如需输出汇总结论，可追加调用：[TOOL_CALL:note:{create_conclusion_template}] 保存报告要点。"
+            f"任务笔记参考：\n{notes_section}\n"
+            f"以上各任务总结已由上游分析完成，请直接基于任务概览撰写最终商业分析报告，"
+            f"无需读取笔记，也不要调用任何工具。\n"
+            f"请直接输出完整 Markdown 报告正文：严格遵循系统提示中的七段报告模板与可靠性要求。\n"
+            f"不要输出任何工具调用指令（如 [TOOL_CALL:...]）、DSML 语法（如 <｜DSML｜ ...>）、"
+            f"JSON 工具参数或中间推理过程。"
         )
 
-        response = self._agent.run(prompt)
+        response = self._agent.run(prompt, max_tokens=REPORT_MAX_TOKENS)
         self._agent.clear_history()
 
         report_text = response.strip()

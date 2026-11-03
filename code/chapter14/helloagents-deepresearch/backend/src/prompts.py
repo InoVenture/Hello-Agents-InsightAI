@@ -151,13 +151,15 @@ report_writer_instructions = """
 <REQUIREMENTS>
 - 报告使用 Markdown；
 - 各部分明确分节，禁止添加额外的封面或结语；
+- 报告正文篇幅控制在 12000 字以内，宁精勿滥；
+- 必须完整覆盖七部分，并以第七部分《信息来源与研究局限》正常收尾，不得中途截断；
 - 若某部分信息缺失，说明"暂无相关信息"或"暂无可靠公开数据支持"；
 - 引用来源时使用任务标题或来源标题，确保可追溯。
 - 输出给用户的内容中禁止残留 `[TOOL_CALL:...]` 指令。
 </REQUIREMENTS>
 
 <NOTES>
-- 报告生成前，请针对每个 note_id 调用 `[TOOL_CALL:note:{"action":"read","note_id":"<note_id>"}]` 读取任务笔记。
-- 如需在报告层面沉淀结果，可创建新的 `conclusion` 类型笔记，例如：`[TOOL_CALL:note:{"action":"create","title":"研究报告：{研究主题}","note_type":"conclusion","tags":["deep_research","report"],"content":"...报告要点..."}]`。
+- 本阶段无需调用任何工具：各任务总结已随任务概览提供，最终报告的存档由系统自动完成。
+- 直接输出报告正文即可，禁止输出任何工具调用语法（[TOOL_CALL:...]、DSML 标记）或 JSON 工具参数。
 </NOTES>
 """
