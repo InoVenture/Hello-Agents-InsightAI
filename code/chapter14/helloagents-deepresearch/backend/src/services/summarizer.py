@@ -9,6 +9,7 @@ from hello_agents import ToolAwareSimpleAgent
 
 from models import SummaryState, TodoItem
 from config import Configuration
+from prompts import get_current_date
 from utils import strip_thinking_tokens
 from services.notes import build_note_guidance
 from services.text_processing import strip_tool_calls
@@ -115,6 +116,7 @@ class SummarizationService:
         """Construct the summarization prompt shared by both modes."""
 
         return (
+            f"当前日期：{get_current_date()}\n"
             f"任务主题：{state.research_topic}\n"
             f"任务名称：{task.title}\n"
             f"任务目标：{task.intent}\n"

@@ -8,6 +8,7 @@ from hello_agents import ToolAwareSimpleAgent
 
 from models import SummaryState
 from config import Configuration
+from prompts import get_current_date
 from utils import strip_thinking_tokens
 from services.text_processing import strip_tool_calls
 
@@ -57,6 +58,7 @@ class ReportingService:
         )
 
         prompt = (
+            f"当前日期：{get_current_date()}\n"
             f"研究主题：{state.research_topic}\n"
             f"任务概览：\n{''.join(tasks_block)}\n"
             f"可用任务笔记：\n{notes_section}\n"
